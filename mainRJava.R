@@ -7,3 +7,11 @@ foo = function(mat) {
         return (matrix(data=NA, nrow = 1, ncol=1))
     }
 }
+
+bar = function() {
+
+    print("Hello from R with 'print'")
+
+    cat("Test with 'cat'")
+
+}
