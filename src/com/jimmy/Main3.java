@@ -36,6 +36,10 @@ public class Main3 {
 
         r.eval("bar()");
 
+        r.eval("stp()");
+
+        System.out.println("END");
+
         r.end();
 
     }

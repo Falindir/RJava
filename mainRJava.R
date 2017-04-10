@@ -15,3 +15,9 @@ bar = function() {
     cat("Test with 'cat'")
 
 }
+
+stp = function() {
+  print("before")
+  stop()
+  print("after")
+}
