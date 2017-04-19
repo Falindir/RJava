@@ -1,8 +1,7 @@
 package com.jimmy;
 
+import com.jimmy.tools.TextConsole;
 import org.rosuda.JRI.Rengine;
-import org.rosuda.REngine.REXPDouble;
-import org.rosuda.REngine.REngine;
 
 import java.util.Arrays;
 
@@ -53,5 +52,7 @@ public class Main3 {
         }
 
     }
+
+
 
 }
