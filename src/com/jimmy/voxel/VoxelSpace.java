@@ -50,7 +50,7 @@ public class VoxelSpace {
 
         int nbElement = list.size()-header_size;
 
-        voxels = new VoxelsArray(header, nbElement, header.getNumberColumn());
+        double groud_distance = 0;
 
         int index_ground_distance = header.getIndexColumn("ground_distance");
 
@@ -58,28 +58,43 @@ public class VoxelSpace {
         for (int i = 0; i < list.size()-header_size; i++) {
             List<String> tab = Arrays.asList(list.get(i+header_size).split(" "));
 
-            double groud_distance = Double.parseDouble(tab.get(index_ground_distance));
+            groud_distance = Double.parseDouble(tab.get(index_ground_distance));
 
             if(Tools.round(groud_distance) > 0) {
                 size_after++;
             }
         }
 
-        System.out.println(size_after);
+        voxels = new VoxelsArray(header, nbElement, header.getNumberColumn(), size_after);
+
+        int filter = 0;
 
         for (int i = 0; i < list.size()-header_size; i++) {
-            List<String> tab = Arrays.asList(list.get(i+header_size).split(" "));
-            for(int j = 0; j < tab.size(); j++) {
-                voxels.add(i, j, Double.parseDouble(tab.get(j)));
-            }
+            List<String> tab = Arrays.asList(list.get(i + header_size).split(" "));
 
-            voxels.add_ijk(i)
-                    .add_I(i, minivox)
-                    .add_J(i, minivox)
-                    .add_K(i, minivox)
-                    .add_trials(i, EP)
-                    .add_success(i, EP)
-                    .add_prop(i);
+            groud_distance = Double.parseDouble(tab.get(index_ground_distance));
+
+            if (Tools.round(groud_distance) > 0) {
+
+                for (int j = 0; j < tab.size(); j++) {
+                    voxels.add_filtered(filter, j, Double.parseDouble(tab.get(j)));
+
+                    voxels.add_ijk(filter)
+                            .add_I(filter, minivox)
+                            .add_J(filter, minivox)
+                            .add_K(filter, minivox)
+                            .add_trials(filter, EP)
+                            .add_success(filter, EP)
+                            .add_prop(filter);
+                }
+
+                filter++;
+            } else {
+
+                for (int j = 0; j < tab.size(); j++) {
+                    voxels.add_initial(i, j, Double.parseDouble(tab.get(j)));
+                }
+            }
         }
     }
 
