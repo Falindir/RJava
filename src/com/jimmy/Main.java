@@ -3,11 +3,6 @@ package com.jimmy;
 import com.jimmy.tools.Tools;
 import com.jimmy.voxel.MixModTrans;
 
-import java.io.File;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.concurrent.TimeUnit;
-
 public class Main {
 
 
@@ -26,7 +21,7 @@ public class Main {
 
             mmt.loadVoxelSpace();
 
-
+            mmt.bigLoop();
 
         } catch (Exception e) {
             e.printStackTrace();

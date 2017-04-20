@@ -23,7 +23,11 @@ public class VoxelsArray {
     private double[] success;
     private double[] prop;
 
+    private double max_I = 0;
+    private double max_J = 0;
+    private double max_K = 0;
 
+    private int[][] df;
 
     public VoxelsArray(VoxHeader header, int sizeX, int sizeY, int sizeX_filter) {
 
@@ -60,17 +64,24 @@ public class VoxelsArray {
     }
 
     public VoxelsArray add_I(int x, int minivox) {
-        I[x] = Math.floor(voxels_filtered[x][index_ci] / minivox);
+
+        double vi = Math.floor(voxels_filtered[x][index_ci] / minivox);
+        max_I = Math.max(max_I, vi);
+        I[x] = vi;
         return this;
     }
 
     public VoxelsArray add_J(int x, int minivox) {
-        J[x] = Math.floor(voxels_filtered[x][index_cj] / minivox);
+        double vj = Math.floor(voxels_filtered[x][index_cj] / minivox);
+        max_J = Math.max(max_J, vj);
+        J[x] = vj;
         return this;
     }
 
     public VoxelsArray add_K(int x, int minivox) {
-        K[x] = Math.floor(voxels_filtered[x][index_ck] / minivox);
+        double vk = Math.floor(voxels_filtered[x][index_ck] / minivox);
+        max_K = Math.max(max_K, vk);
+        K[x] = vk;
         return this;
     }
 
@@ -87,6 +98,47 @@ public class VoxelsArray {
     public VoxelsArray add_prop(int x) {
         prop[x] = success[x]/trials[x];
         return this;
+    }
+
+
+    public int getMax_I() {
+        return (int)max_I;
+    }
+
+    public int getMax_J() {
+        return (int)max_J;
+    }
+
+    public int getMax_K() {
+        return (int)max_K;
+    }
+
+    public int getSizeVoxelsFiltered() {
+        return voxels_filtered.length;
+    }
+
+    public int getSizeVoxelsInitial() {
+        return voxels_initial.length;
+    }
+
+    public int getI(int x) {
+        return (int)I[x];
+    }
+
+    public int getJ(int x) {
+        return (int)J[x];
+    }
+
+    public int getK(int x) {
+        return (int)K[x];
+    }
+
+    public int getTrial(int x) {
+        return (int)trials[x];
+    }
+
+    public double getProp(int x) {
+        return prop[x];
     }
 
 }

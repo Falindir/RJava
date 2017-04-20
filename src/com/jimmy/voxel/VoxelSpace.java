@@ -2,6 +2,7 @@ package com.jimmy.voxel;
 
 import com.jimmy.tools.Tools;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,18 +10,13 @@ public class VoxelSpace {
 
     private VoxHeader header;
     private VoxelsArray voxels;
+    private TrialsIntance[][][] trialsIntance;
 
     //distance de voisinage (en cellules)
     private int minivox = 5;
 
     // pas de discrétisation des volumes élémentaires
     private double  EP = 0.01;
-
-    // nbre minimum de cellules échantillonnées pour appliquer le modèle glmer
-    private int seuil_echantillonnage = 10;
-
-    // nombre max de minivoxels -1 fusionnés pour le calcul du voisinage
-    private int seuil_fusion = 0;
 
     public VoxelSpace() {
     }
@@ -104,4 +100,70 @@ public class VoxelSpace {
         return header;
     }
 
+    public VoxelsArray getVoxels() {
+        return voxels;
+    }
+
+    public List<DF> createDF() {
+
+        int sx = voxels.getMax_I()+1;
+        int sy = voxels.getMax_J()+1;
+        int sz = voxels.getMax_K()+1;
+
+        int [][][] number_instance = new int[sx][sy][sz];
+
+        trialsIntance = new TrialsIntance [sx][sy][sz];
+
+        for (int i = 0; i < sx; i++) {
+            for (int j = 0; j < sy; j++) {
+                for (int k = 0; k < sz; k++) {
+                    number_instance[i][j][k] = 0;
+                    trialsIntance[i][j][k] = new TrialsIntance();
+                }
+            }
+        }
+
+        for (int i = 0; i < voxels.getSizeVoxelsFiltered(); i++) {
+
+            int I = voxels.getI(i);
+            int J = voxels.getJ(i);
+            int K = voxels.getK(i);
+            int trial = voxels.getTrial(i);
+            double prop = voxels.getProp(i);
+
+            TrialsIntance tr = trialsIntance[I][J][K];
+
+            number_instance[I][J][K]++;
+
+            incTrials(tr, trial, prop);
+
+        }
+
+        List<DF> df = new ArrayList<>();
+
+        for (int i = 0; i < sx; i++) {
+            for (int j = 0; j < sy; j++) {
+                for (int k = 0; k < sz; k++) {
+                    int nbi = number_instance[i][j][k];
+                    if(nbi > 0) {
+                        DF dfi = new DF(i, j, k, nbi, trialsIntance[i][j][k]);
+                        df.add(dfi);
+                    }
+                }
+            }
+        }
+
+        System.out.println(df.get(0).getTrialsIntance().getZ());
+        System.out.println(df.get(df.size()-1).getTrialsIntance().getZ());
+
+        return df;
+    }
+
+    private void incTrials(TrialsIntance tr, int trial, double prop) {
+        if(trial == 0) {
+                tr.addZero(prop);
+        } else if(trial > 0) {
+                tr.addPositive(prop);
+        }
+    }
 }
