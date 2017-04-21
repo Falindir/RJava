@@ -33,16 +33,7 @@ vox$success=round(vox$bvEntering*vox$transmittance/EP)
 vox$prop=vox$success/vox$trials
 
 #drop only below ground voxels
-
-nrow(vox)
-NROW(vox)
-
 vox=vox[which(round(vox$ground_distance)>0),]
-
-nrow(vox)
-NROW(vox)
-
-stop()
 
 ###################
 time1 = Sys.time()
@@ -57,6 +48,7 @@ df = vox[,.(nbvox=.N
 df<-df[order(df$I,df$J,df$K),]
 
 
+
 ###################
 time2 = Sys.time()
 ###################
@@ -66,6 +58,8 @@ previous=c()
 fus=0
 # parcours des cubes de voisinage
 # pas optimis? mais plus lisible que la version de fabian (qui est bcp plus rapide)
+
+
 for (i in 1:dim(df)[1])
 {
   #merge with previous unprocessed cube
@@ -73,12 +67,18 @@ for (i in 1:dim(df)[1])
   I0=df$I[i]
   J0=df$J[i]
   K0=df$K[i]
+
   test=vox[I==I0 & J==J0 & K==K0,]
+
   test$pred=as.numeric(NA) #as.numeric required if not treated as boolean in data.table
+
   test=rbind(test, previous)
+
   test_nona=test[which(test$trials>0),]
   test_na=test[which(test$trials==0),]
   #if enough voxels documented in cube then update values of transmittance
+
+
   if (dim(test_nona)[1]>seuil_echantillonnage)
     {
     previous=c()
@@ -99,6 +99,7 @@ for (i in 1:dim(df)[1])
       else
         {
         mod1=glmer(prop~1|ijk, weights=trials,family=binomial(link="logit"), data=test_nona)
+        stop()
         test_nona$pred=predict(mod1,type="response")
         if(dim(test_na)[1]>0) #there are cases of unsampled voxels which values are set to local mean transmittance
           {

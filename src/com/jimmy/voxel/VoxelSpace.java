@@ -12,13 +12,20 @@ public class VoxelSpace {
     private VoxelsArray voxels;
     private TrialsIntance[][][] trialsIntance;
 
+    private List<DF> df;
+
     //distance de voisinage (en cellules)
     private int minivox = 5;
 
     // pas de discrétisation des volumes élémentaires
     private double  EP = 0.01;
 
-    public VoxelSpace() {
+    public VoxelSpace(List<String> list, int header_size) {
+
+
+        this.createSpace(list, header_size);
+
+        df = this.createDF();
     }
 
     private void createHeader(List<String> list) {
@@ -38,7 +45,7 @@ public class VoxelSpace {
         return new Point3D(Double.parseDouble(tab[1]), Double.parseDouble(tab[2]), Double.parseDouble(tab[3]));
     }
 
-    public void createSpace(List<String> list, int header_size) {
+    private void createSpace(List<String> list, int header_size) {
 
         createHeader(list);
 
@@ -74,7 +81,7 @@ public class VoxelSpace {
 
                 for (int j = 0; j < tab.size(); j++) {
                     voxels.add_filtered(filter, j, Double.parseDouble(tab.get(j)));
-
+                    voxels.add_gmle(filter, j, Double.parseDouble(tab.get(j)));
                     voxels.add_ijk(filter)
                             .add_I(filter, minivox)
                             .add_J(filter, minivox)
@@ -104,7 +111,7 @@ public class VoxelSpace {
         return voxels;
     }
 
-    public List<DF> createDF() {
+    private List<DF> createDF() {
 
         int sx = voxels.getMax_I()+1;
         int sy = voxels.getMax_J()+1;
@@ -139,7 +146,7 @@ public class VoxelSpace {
 
         }
 
-        List<DF> df = new ArrayList<>();
+        df = new ArrayList<>();
 
         for (int i = 0; i < sx; i++) {
             for (int j = 0; j < sy; j++) {
@@ -165,5 +172,9 @@ public class VoxelSpace {
         } else if(trial > 0) {
                 tr.addPositive(prop);
         }
+    }
+
+    public List<DF> getDf() {
+        return df;
     }
 }

@@ -28,8 +28,6 @@ public class MixModTrans {
     // nombre max de minivoxels -1 fusionnés pour le calcul du voisinage
     private int seuil_fusion = 0;
 
-    private List<DF> df;
-
     public MixModTrans(String input, String output, boolean overwrite_output) throws Exception {
         this.input = new File(input);
         this.output = new File(output);
@@ -55,24 +53,20 @@ public class MixModTrans {
             e.printStackTrace();
         }
 
-        voxel_space = new VoxelSpace();
-
-        voxel_space.createSpace(list, header_input);
-
-        df = voxel_space.createDF();
+        voxel_space = new VoxelSpace(list, header_input);
     }
 
-
-    //TODO temps name
-    public void bigLoop() {
+    public void runTest() {
 
         int i = 0;
 
 
 
-        for (DF df : df) {
+        for (DF df : voxel_space.getDf()) {
 
             double pred = Double.NaN;
+
+            //System.out.println(df.getI() + "-" + df.getJ() + "-" + df.getK());
 
             TrialsIntance tr = df.getTrialsIntance();
             int test_nona = tr.getP();
@@ -84,8 +78,12 @@ public class MixModTrans {
                     pred = 1;
                 }
                 else {
+
                     if(tr.allPPropAsEqualValue(0.0)) {
                         pred = Double.NaN;
+                    }
+                    else {
+                        String[][] gmerTab = new String[0][0];
                     }
                 }
 
@@ -98,6 +96,12 @@ public class MixModTrans {
 
 
         }
+
+    }
+
+    public void writeResult() {
+
+
 
     }
 

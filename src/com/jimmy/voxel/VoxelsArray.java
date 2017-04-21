@@ -27,7 +27,7 @@ public class VoxelsArray {
     private double max_J = 0;
     private double max_K = 0;
 
-    private int[][] df;
+    private double[][] voxels_glme;
 
     public VoxelsArray(VoxHeader header, int sizeX, int sizeY, int sizeX_filter) {
 
@@ -46,6 +46,27 @@ public class VoxelsArray {
         trials = new double[sizeX_filter];
         success = new double[sizeX_filter];
         prop = new double[sizeX_filter];
+
+        voxels_glme = new double[sizeX_filter][5];
+    }
+
+    public void add_gmle(int x, int y, double value){
+
+        if(y == index_ci) {
+            voxels_glme[x][0] = value;
+        }
+        else if(y == index_cj) {
+            voxels_glme[x][1] = value;
+        }
+        else if(y == index_ck) {
+            voxels_glme[x][2] = value;
+        }
+        else if(y == 3) {
+            voxels_glme[x][3] = value;
+        }
+        else if(y == 4) {
+            voxels_glme[x][4] = value;
+        }
     }
 
     public void add_initial(int x, int y, double value) {
@@ -59,7 +80,7 @@ public class VoxelsArray {
 
 
     public VoxelsArray add_ijk(int x) {
-        ijk[x] = voxels_filtered[x][index_ci] + "_"+ voxels_filtered[x][index_cj] + voxels_filtered[x][index_ck];
+        ijk[x] = voxels_filtered[x][index_ci] + "_"+ voxels_filtered[x][index_cj] + "_" + voxels_filtered[x][index_ck];
         return this;
     }
 
@@ -139,6 +160,20 @@ public class VoxelsArray {
 
     public double getProp(int x) {
         return prop[x];
+    }
+
+    public String[][] getGLMERInput(int I, int J, int K, int size) {
+
+        System.out.println(size);
+
+        String[][] tab = new String[size][2];
+
+        for (int i = 0; i < size; i++) {
+
+
+        }
+
+        return tab;
     }
 
 }
