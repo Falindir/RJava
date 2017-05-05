@@ -9,6 +9,11 @@ public class Main3 {
 
     public static void main(String[] args) {
 
+        float f = (float) 0.01;
+
+        System.out.println(f);
+
+/*
         double[][] mat = new double[10][10];
 
         double cnt = 0;
@@ -39,7 +44,7 @@ public class Main3 {
 
         System.out.println("END");
 
-        r.end();
+        r.end();*/
 
     }
 

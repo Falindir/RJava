@@ -9,13 +9,25 @@ import java.util.concurrent.TimeUnit;
  */
 public class Tools {
 
-    public static double round(double d) {
+    public static float round(float d) {
         if(Double.isNaN(d))
-            return Double.NaN;
+            return Float.NaN;
 
         return new BigDecimal(d).setScale(0, RoundingMode.HALF_DOWN)
-                .doubleValue();
+                .floatValue();
     }
+
+    public static float mean(float d1, float d2) {
+        //if(Float.isNaN(d1))
+        //    return d2;
+
+        //if(Float.isNaN(d2))
+        //    return d1;
+
+        return ( d1 + d2 ) / 2;
+    }
+
+    // TODO 3D to 1D and reverse
 
     public static String elapsed(long duration) {
         final TimeUnit scale = TimeUnit.MILLISECONDS;

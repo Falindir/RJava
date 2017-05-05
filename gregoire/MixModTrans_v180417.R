@@ -1,4 +1,4 @@
-#mixed model estimation of local transmittance 
+#mixed model estimation of local transmittance
 
 rm(list=ls())
 library(lme4)
@@ -14,6 +14,7 @@ seuil_fusion=0 # nombre max de minivoxels -1 fusionn?s pour le calcul du voisina
 #lecture de l'espace voxel
 
 file="/home/jimmy/jimmy/test/rjava/input/ALS_P15_1m.vox"
+#file="/home/jimmy/jimmy/test/rjava/input/Paracou_tile40_2013.vox"
 ini_vox=loadVoxelSpace(file)
 vox=ini_vox@voxels
 
@@ -47,8 +48,6 @@ df = vox[,.(nbvox=.N
 # setting the order to force merging to take place vertically rather than horizontally
 df<-df[order(df$I,df$J,df$K),]
 
-
-
 ###################
 time2 = Sys.time()
 ###################
@@ -60,6 +59,7 @@ fus=0
 # pas optimis? mais plus lisible que la version de fabian (qui est bcp plus rapide)
 
 
+
 for (i in 1:dim(df)[1])
 {
   #merge with previous unprocessed cube
@@ -67,6 +67,8 @@ for (i in 1:dim(df)[1])
   I0=df$I[i]
   J0=df$J[i]
   K0=df$K[i]
+
+
 
   test=vox[I==I0 & J==J0 & K==K0,]
 
@@ -77,7 +79,6 @@ for (i in 1:dim(df)[1])
   test_nona=test[which(test$trials>0),]
   test_na=test[which(test$trials==0),]
   #if enough voxels documented in cube then update values of transmittance
-
 
   if (dim(test_nona)[1]>seuil_echantillonnage)
     {
@@ -99,19 +100,19 @@ for (i in 1:dim(df)[1])
       else
         {
         mod1=glmer(prop~1|ijk, weights=trials,family=binomial(link="logit"), data=test_nona)
-        stop()
         test_nona$pred=predict(mod1,type="response")
         if(dim(test_na)[1]>0) #there are cases of unsampled voxels which values are set to local mean transmittance
           {
           test_na$pred=mean(test_nona$pred)
+
           test=rbind(test_nona,test_na)
-          } 
+          }
         else #no unssampled voxel
          {
           test=test_nona
           }
         }
-      } 
+      }
       if (is.null(res)) {res=test} else {res=rbind(res,test)}
       fus=0
     }
@@ -130,12 +131,14 @@ for (i in 1:dim(df)[1])
       fus=0
       }
     }
-  if (i %% 100==0) 
+  if (i %% 100==0)
   {
    #gc()
    print(i)
   }
 }
+
+
 
 
 ###################
@@ -146,12 +149,15 @@ time3 = Sys.time()
 # hist(res$transmittance, breaks=100)
 # range(na.omit(res$pred))
 
+
+
 ini=merge(ini_vox@voxels,res[,c("i","j","k","pred")], by=c("i","j","k"), all.x=T)
 
 out_vox=ini_vox
 out_vox@voxels=ini
 
 #mean trans per height above ground layer
+stop()
 res$ground_distance=round(res$ground_distance)
 mean_layer_trans=tapply(res$pred,res$ground_distance, mean, na.rm=T)
 df_layer=data.frame(layer=as.numeric(names(mean_layer_trans)),mean_trans=mean_layer_trans)
@@ -160,6 +166,8 @@ df_layer=data.frame(layer=as.numeric(names(mean_layer_trans)),mean_trans=mean_la
 out_vox_nona=out_vox@voxels[which((!is.na(out_vox@voxels$pred)) & (round(out_vox@voxels$ground_distance)>0)),]
 out_vox_na=out_vox@voxels[which(is.na(out_vox@voxels$pred) & round(out_vox@voxels$ground_distance)>0),]
 
+print(dim(df_layer)[1])
+stop()
 for (l in 1:dim(df_layer)[1])
 {
   out_vox_na$pred[which(round(out_vox_na$ground_distance)==l)]<-df_layer$mean_trans[l]
