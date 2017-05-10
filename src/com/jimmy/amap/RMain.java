@@ -8,8 +8,9 @@ public class RMain {
     public static void main(String[] args) {
 
         String inputPath = "input/ALS_P15_1m.vox";
+        String outputPath = "output/ALS_P15_1m.out2.vox";
+
         //String inputPath = "input/Paracou_tile40_2013.vox";
-        String outputPath = "output/ALS_P15_1m.out.vox";
         //String outputPath = "output/Paracou_tile40_2013.vox";
 
         System.out.println("Input : " + inputPath);

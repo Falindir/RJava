@@ -37,4 +37,8 @@ public class RPlot3D {
     public int getSizeZ() {
         return sizeZ;
     }
+
+    public int getSize1D() {
+        return getSizeX() * getSizeY() * getSizeZ();
+    }
 }

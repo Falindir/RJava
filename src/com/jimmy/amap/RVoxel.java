@@ -13,13 +13,13 @@ public class RVoxel {
 
     private double bvEntering;
 
-    private double ground_distance;
+    private int ground_distance;
 
     private double transmittance;
 
     private double PadBVTotal;
 
-    public RVoxel(int i, int j, int k, double bvEntering, double ground_distance, double transmittance, double padBVTotal) {
+    public RVoxel(int i, int j, int k, double bvEntering, int ground_distance, double transmittance, double padBVTotal) {
         this.i = i;
         this.j = j;
         this.k = k;
@@ -45,7 +45,7 @@ public class RVoxel {
         return bvEntering;
     }
 
-    public double getGround_distance() {
+    public int getGround_distance() {
         return ground_distance;
     }
 
@@ -55,6 +55,34 @@ public class RVoxel {
 
     public double getPadBVTotal() {
         return PadBVTotal;
+    }
+
+    public int getMiniI() {
+        return (int)(Math.floor((double)i / RConstant.minivox));
+    }
+
+    public int getMiniJ() {
+        return (int)(Math.floor((double)j / RConstant.minivox));
+    }
+
+    public int getMiniK() {
+        return (int)(Math.floor((double)k / RConstant.minivox));
+    }
+
+    public double getTrial() {
+        return RTools.round(bvEntering / RConstant.EP);
+    }
+
+    public double getSucess() {
+        return RTools.round(bvEntering * transmittance / RConstant.EP);
+    }
+
+    public double getProp() {
+        return getSucess() / getTrial();
+    }
+
+    public String getIJK() {
+        return i + "_" + j + "_" + k;
     }
 
     public RVoxel setTransmittance(double transmittance) {
