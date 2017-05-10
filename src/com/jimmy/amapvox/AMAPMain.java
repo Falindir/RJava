@@ -1,7 +1,5 @@
 package com.jimmy.amapvox;
 
-import com.jimmy.tools.Tools;
-
 public class AMAPMain {
 
     public static void main(String[] args) {
@@ -23,6 +21,7 @@ public class AMAPMain {
             modTrans.createIJK();
             modTrans.preprocess();
             modTrans.loopR();
+            modTrans.postprocess();
             modTrans.writeResult();
 
         } catch (Exception e) {

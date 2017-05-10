@@ -1,7 +1,5 @@
 package com.jimmy.amapvox;
 
-import com.jimmy.tools.Tools;
-
 import java.io.File;
 
 /**
@@ -77,11 +75,22 @@ public class AMAPMixModTrans {
         System.out.println("Loop R End and took : " + Tools.elapsed(time));
     }
 
+
+    public void postprocess() {
+        System.out.println("\n\nPost process Start");
+        long startTime = System.currentTimeMillis();
+
+        this.voxelSpace.postprocess();
+
+        long time = System.currentTimeMillis() - startTime;
+        System.out.println("Post process End and took : " + Tools.elapsed(time));
+    }
+
     public void writeResult() {
         System.out.println("\n\nWrite result Start");
         long startTime = System.currentTimeMillis();
 
-        //this.voxelSpace.postprocess();
+        this.voxelSpace.writeResult();
 
         long time = System.currentTimeMillis() - startTime;
         System.out.println("Write result End and took : " + Tools.elapsed(time));

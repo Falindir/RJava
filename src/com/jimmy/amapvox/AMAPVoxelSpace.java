@@ -1,18 +1,17 @@
 package com.jimmy.amapvox;
 
-import com.jimmy.tools.Tools;
-import com.jimmy.v4.VTools;
-
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Created by jimmy on 02/05/17.
  */
 public class AMAPVoxelSpace {
+
+    private String title;
+
 
     private AMAPMixModTrans modTrans;
 
@@ -38,10 +37,12 @@ public class AMAPVoxelSpace {
 
     private float max_ground_distance = 0;
 
+    private double[][] meadByGD;
+
     public AMAPVoxelSpace(AMAPMixModTrans modTrans) {
         this.modTrans = modTrans;
 
-        this.init_data = new float[modTrans.getSizeInput()][7]; // i j k bvEntering ground_distance transmittance ID
+        this.init_data = new float[modTrans.getSizeInput()][8]; // i j k bvEntering ground_distance transmittance ID PadBVTotal
 
         this.Rcode = new AMAPRCommunication();
 
@@ -65,7 +66,7 @@ public class AMAPVoxelSpace {
         try (BufferedReader br = new BufferedReader(new FileReader(modTrans.getInput()))) {
 
             /* For skip test each line*/
-            String l1 = br.readLine();
+            this.title = br.readLine();
             String l2 = br.readLine();
             String l3 = br.readLine();
             String l4 = br.readLine();
@@ -88,12 +89,11 @@ public class AMAPVoxelSpace {
             int position_bvIntercepted = collumn.indexOf("bvEntering");
             int position_transmittance = collumn.indexOf("transmittance");
             int position_ground_distance = collumn.indexOf("ground_distance");
+            int position_PadBVTotal = collumn.indexOf("PadBVTotal");
 
             int max = Math.max(Math.max(position_bvIntercepted, position_transmittance), position_ground_distance);
 
             System.out.println("MAX POS : " + max);
-
-            int j;
 
             while ((line = br.readLine()) != null) {
 
@@ -106,6 +106,7 @@ public class AMAPVoxelSpace {
                 init_data[nline][4] = getGroundDistance(values[position_ground_distance]);
                 init_data[nline][5] = Float.parseFloat(values[position_transmittance]);
                 init_data[nline][6] = nline;
+                init_data[nline][7] = Float.parseFloat(values[position_PadBVTotal]);
 
                 nline++;
             }
@@ -220,14 +221,6 @@ public class AMAPVoxelSpace {
 
     public void loop() {
 
-        //int fus = 0;
-
-        System.out.println(tempVoxel.length);
-
-        System.out.println(this.filtered_data.length);
-
-        System.out.println(this.max_ground_distance);
-
         int[] gd = new int[(int)this.max_ground_distance];
 
         for (int i = 0; i < this.nline; i++) {
@@ -239,16 +232,6 @@ public class AMAPVoxelSpace {
 
         }
 
-        for (int j = 0; j < this.max_ground_distance; j++) {
-            System.out.println("j : " + j + " = " + gd[j]);
-        }
-
-
-        if(true)
-            return;
-
-        //TODO temp possible refactor
-
         resultat = new double[this.split.getIntX()][this.split.getIntY()][this.split.getIntZ()][1];
 
         int hi;
@@ -259,15 +242,19 @@ public class AMAPVoxelSpace {
             hi = (int)init[0];
             hj = (int)init[1];
             hk = (int)init[2];
-            resultat[hi][hj][hk][0] = Float.NaN; // pred
+            resultat[hi][hj][hk][0] = Double.NaN;
         }
 
 
+        int meanN = 0;
+        int fus = 0;
+        int val1 = 0;
+
         for (int i = 0; i < tempVoxel.length; i++) {
 
-
-            if (i % 100==0)
+            if (i % 100==0) {
                 System.out.println(i);
+            }
 
             float TI = tempVoxel[i][0];
             float TJ = tempVoxel[i][1];
@@ -276,8 +263,11 @@ public class AMAPVoxelSpace {
             int sizeP = 0;
             int sizeZ = 0;
 
+            int size = 0;
+
             for(float[] v : filtered_data) {
                 if((TI == v[0]) && (TJ == v[1]) && (TK == v[2])) {
+                    size++;
                     if(v[3] > 0) {
                         sizeP++;
                     } else if(v[3] == 0) {
@@ -288,6 +278,9 @@ public class AMAPVoxelSpace {
 
             int sP = 0;
             int sZ = 0;
+            int sT = 0;
+
+            String[] ijkT = new String[size];
 
             String[] ijkP = new String[sizeP];
             double[] propP = new double[sizeP];
@@ -301,6 +294,8 @@ public class AMAPVoxelSpace {
                 float VP = v[4];
 
                 if((TI == v[0]) && (TJ == v[1]) && (TK == v[2])) {
+                    ijkT[sT] = ijk;
+                    sT++;
                     if(VT > 0) {
                         ijkP[sP] = ijk;
                         propP[sP] = VP;
@@ -317,14 +312,17 @@ public class AMAPVoxelSpace {
 
                 boolean allOne = true;
                 for(double p : propP) {
-                    if(p != 1) {
+                    if(p != 1.0) {
                         allOne = false;
                         break;
                     }
                 }
 
                 if(allOne) {
-                    for(String s : ijkP) {
+
+                    val1++;
+
+                    for(String s : ijkT) {
                         String[] values = s.split("_");
                         int wi = Integer.parseInt(values[0]);
                         int wj = Integer.parseInt(values[1]);
@@ -349,21 +347,19 @@ public class AMAPVoxelSpace {
                         double[] res = Rcode.Jglme(propP, trialsP, ijkP);
 
                         int index = 0;
+
                         for(String s : ijkP) {
                             String[] values = s.split("_");
                             int wi = Integer.parseInt(values[0]);
                             int wj = Integer.parseInt(values[1]);
                             int wk = Integer.parseInt(values[2]);
 
-                            if(res[index] > 1) {
-                                System.out.println("MERDE");
-                            }
-
-                            resultat[wi][wj][wk][0] = AMAPVoxelSpace.trunc(res[index], 7);
+                            resultat[wi][wj][wk][0] = res[index];
                             index++;
                         }
 
                         if(sizeZ > 0) {
+                            meanN++;
                             double mean = 0.0;
 
                                 for (double r : res) {
@@ -371,29 +367,17 @@ public class AMAPVoxelSpace {
                                 }
                                 mean = (mean / (double)res.length);
 
-                                //System.out.println(mean);
 
                                 for(String s : ijkZ) {
+
                                 String[] values = s.split("_");
                                 int wi = Integer.parseInt(values[0]);
                                 int wj = Integer.parseInt(values[1]);
                                 int wk = Integer.parseInt(values[2]);
 
-                                if(mean > 1) {
-                                    System.out.println("MERDE 2");
-                                }
-                                resultat[wi][wj][wk][0] = AMAPVoxelSpace.trunc(mean, 7);
-                                //resultat[wi][wj][wk][2] = Tools.mean(mean, resultat[wi][wj][wk][0]);
+                                resultat[wi][wj][wk][0] = mean;
                                 index++;
                                 }
-
-                                //resultat[wi][wj][wk][1] = res;
-                               // resultat[wi][wj][wk][2] = Tools.mean(res, resultat[wi][wj][wk][0]);
-
-                               // System.out.println(wi + " - " + wj + " - " + wk + " : " + res);
-
-
-
                         }
                         else {
 
@@ -401,26 +385,32 @@ public class AMAPVoxelSpace {
                     }
                 }
 
-                //fus=0;
+                fus=0;
             }
-            //else {
+            else {
 
-               // if(fus > AMAPConstant.seuil_fusion) {
-                  //  fus += 1;
-               // }
+                if(fus < AMAPConstant.seuil_fusion) {
+                    fus += 1;
+                }
+                else {
 
-           // }
+                }
+
+            }
 
             Rcode.endConnection();
         }
+
+
     }
 
     public void postprocess() {
         int nbNanMena = 0;
-        double[][] meadByGD = new double[(int)this.max_ground_distance+1][2];
+         meadByGD = new double[(int)this.max_ground_distance+1][3];
 
 
-
+        int print = 0;
+        int nAV = 0;
         for (int i = 0; i < this.nline; i++) {
 
             int ground = (int) init_data[i][4];
@@ -432,49 +422,142 @@ public class AMAPVoxelSpace {
 
                 double pred = resultat[wi][wj][wk][0];
 
-                //if (i < 100 || i > this.nline - 100)
-                if(ground == 62)
-                    System.out.println(wi + " - " + wj + " - " + wk + " : " + ground);
+                if(!Double.isNaN(pred)) {
+                    pred = AMAPVoxelSpace.trunc(pred, 7);
+                }
 
                 if(!Double.isNaN(pred)) {
-                    meadByGD[ground-1][0] += AMAPVoxelSpace.trunc(pred, 7);
+                    if(ground < 10) {
+                        if(print < 100) {
+                            print++;
+                        }
+                    }
+
+                    meadByGD[ground-1][0] += pred;
                     meadByGD[ground-1][1]++;
                 }
-
-            }
-        }
-
-        for (int i = 0; i < this.max_ground_distance; i++) {
-
-            double n = meadByGD[i][1];
-
-            //System.out.println(n);
-            //System.out.println();
-
-            if(n>0) {
-            }
-
-            System.out.println(" i : " + (i+1) + " value : " + (AMAPVoxelSpace.trunc((meadByGD[i][0] / n), 7)) + " - n : " + n + " ** " + meadByGD[i][0]);
-        }
-
-        int mI = this.split.getIntX();
-        int mJ = this.split.getIntY();
-        int mK = this.split.getIntZ();
-
-        for (int i = 0; i < mI; i++) {
-            for (int j = 0; j < mJ; j++) {
-                for (int k = 0; k < mK; k++) {
-
-                    //System.out.print(i + " - " + j + " - " + k);
-                    //System.out.println(" => " + resultat[i][j][k][0]);
+                else {
+                    nAV++;
                 }
             }
         }
 
 
-       // mean_layer_trans=tapply(res$pred,res$ground_distance, mean, na.rm=T)
+        for (int id = 0; id < this.max_ground_distance; id++) {
+            meadByGD[id][2] = meadByGD[id][0] / meadByGD[id][1];
+        }
+
+        for (int i = 0; i < this.nline; i++) {
+            int ground = (int) init_data[i][4];
+
+            if(ground > 0) {
+                int wi = (int) init_data[i][0];
+                int wj = (int) init_data[i][1];
+                int wk = (int) init_data[i][2];
+
+                double pred = resultat[wi][wj][wk][0];
+
+                if(Double.isNaN(pred)) {
+                    pred = meadByGD[ground-1][2];
+                }
+
+                init_data[i][5] = (float) pred;
+
+                if(!Double.isNaN(pred)) {
+                    init_data[i][7] = (float) (-2 * Math.log(pred));
+                }
+
+                if(init_data[i][5] > 0.99) {
+                    init_data[i][5] = 1;
+                }
+
+            }
+            else {
+                init_data[i][7] = 0;
+            }
+        }
 
 
+    }
+
+    public void writeResult() {
+
+        nline = 0;
+
+        try (BufferedWriter bro = new BufferedWriter(new FileWriter(modTrans.getOutput()))) {
+
+        try (BufferedReader br = new BufferedReader(new FileReader(modTrans.getInput()))) {
+
+            /* For skip test each line*/
+            String l1 = br.readLine();
+            String l2 = br.readLine();
+            String l3 = br.readLine();
+            String l4 = br.readLine();
+            String l5 = br.readLine();
+            String l6 = br.readLine();
+
+            writeLine(bro, l1);
+            writeLine(bro, l2);
+            writeLine(bro, l3);
+            writeLine(bro, l4);
+            writeLine(bro, l5);
+            writeLine(bro, l6);
+
+            int position_i = collumn.indexOf("i");
+            int position_j = collumn.indexOf("j");
+            int position_k = collumn.indexOf("k");
+            int position_transmittance = collumn.indexOf("transmittance");
+            int position_PadBVTotal = collumn.indexOf("PadBVTotal");
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+
+                String[] values = line.split(" ");
+
+                String newL = "";
+
+                for (int i = 0; i < values.length; i++) {
+                    if(i == position_i) {
+                        newL += Integer.toString((int)init_data[nline][0]);
+                    }
+                    else if(i == position_j) {
+                        newL += Integer.toString((int)init_data[nline][1]);
+                    }
+                    else if(i == position_k) {
+                        newL += Integer.toString((int)init_data[nline][2]);
+                    }
+                    else if(i == position_PadBVTotal) {
+                        newL += Float.toString(init_data[nline][7]);
+                    }
+                    else if(i == position_transmittance) {
+                        newL += Float.toString(init_data[nline][5]);
+                    }
+                    else {
+                        newL += values[i];
+                    }
+
+                    if(i != values.length - 1)
+                        newL += " ";
+
+                }
+
+                writeLine(bro, newL);
+
+                nline++;
+            }
+
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        bro.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private AMAPPoint3D createPoint3D(String s) {
@@ -483,9 +566,16 @@ public class AMAPVoxelSpace {
     }
 
     public static double trunc(double d, int decimalPlace) {
+        if(Double.isNaN(d))
+            return d;
+
         BigDecimal bd = new BigDecimal(d);
         bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_UP);
         return bd.doubleValue();
+    }
+
+    private void writeLine(BufferedWriter br, String l) throws IOException {
+        br.write(l+"\n");
     }
 
 }
